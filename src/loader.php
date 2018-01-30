@@ -31,7 +31,7 @@ function wprs_get_templates_option( $paths ) {
 				$name            = Arrays::get( $file_name_array, 1, 'None' );
 
 				$headers = [
-					'Name' => __( 'Loop Template Name', 'wizhi' ),
+					'Name' => __( 'Loop Template Name', 'wprs' ),
 				];
 
 				$file_info = get_file_data( $key, $headers );
