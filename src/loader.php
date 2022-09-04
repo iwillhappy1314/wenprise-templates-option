@@ -15,48 +15,54 @@ function wprs_get_templates_option( $paths ) {
 
 	$all_templates_name_labels = [];
 
-	foreach ( $paths as $path ) {
+        foreach ($paths as $path) {
 
-		$templates_name_labels = [];
+            $templates_name_labels = [];
 
-		if ( is_dir( $path ) ) {
+            if (is_dir($path)) {
 
-			$finder = Finder::findFiles( '*.php' )
-			                ->in( $path );
+                $finder = Finder::findFiles('*.php')
+                                ->in($path)
+                                ->limitDepth(5);
 
-			foreach ( $finder as $key => $file ) {
+                foreach ($finder as $key => $file) {
 
-				$filename        = $file->getFilename();
-				$file_name_array = explode( '-', $filename );
-				$name            = Arrays::get( $file_name_array, 1, 'None' );
+                    $relative_filename = str_replace($path . '/', '', $file->getPathname());
 
-				$headers = [
-					'Name' => __( 'Loop Template Name', 'wprs' ),
-				];
+                    $file_name_array = explode('.', $relative_filename);
 
-				$file_info = get_file_data( $key, $headers );
+                    // Get template name form file name
+                    if (count($file_name_array) === 1) {
+                        $name = str_replace('-', ' ', $file_name_array[ 0 ]);
+                    } else {
+                        $name = ucwords(str_replace('-', ' ', Arrays::get($file_name_array, 0, 'None')));
+                    }
 
-				// 获取模板名称
-				if ( $file_info[ 'Name' ] ) {
-					$option_name = $file_info[ 'Name' ];
-				} else {
-					$option_name = ucfirst( $name );
-				}
+                    // Get template name form file comment
+                    $headers = [
+                        'Name' => __('Loop Template Name', 'wprs'),
+                    ];
 
-				// 模版 $name => 模版注释名称数组
-				$templates_name_labels[ explode( '.', $name )[ 0 ] ] = $option_name;
+                    $file_info = get_file_data($key, $headers);
 
-			}
+                    if ($file_info[ 'Name' ]) {
+                        $option_name = $file_info[ 'Name' ];
+                    } else {
+                        $option_name = ucfirst($name);
+                    }
 
-		}
 
-		$all_templates_name_labels[] = $templates_name_labels;
+		    // 模版 $name => 模版注释名称数组
+		    $templates_name_labels[ $relative_filename ] = $option_name;
 
-	}
+                }
 
-	// 循环合并所有数组
-	$templates = wp_parse_args( $all_templates_name_labels[ 1 ], $all_templates_name_labels[ 0 ] );
+                $all_templates_name_labels = array_merge_recursive($all_templates_name_labels, $templates_name_labels);
 
-	return $templates;
+            }
+
+        }
+
+        return $all_templates_name_labels;
 
 }
